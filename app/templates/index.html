@@ -1,0 +1,50 @@
+{% extends "fragments/default.html" %}
+
+{% block navbar %}
+{% include "fragments/navbar.html" with active="home" %}
+{% endblock %}
+
+
+{% block content %}
+
+<div id="issues"></div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+    $(function () {
+        function updateIssues(){
+            $.ajax({
+                url: "https://praekelt.pagerduty.com/api/v1/incidents/?status=triggered",
+                type: "GET",
+                contentType: "application/json",
+                headers: {
+                    Authorization: 'Token token={{ key }}'
+                },
+                success: function(json) {
+
+                    var issues = $("#issues");
+
+                    var dom = '<div id="issues">';
+
+
+                    $.each(json.incidents, function(index, issue){
+                        var stat = issue.incident_key.split(" ");
+                        dom += '<div class="alert alert-danger" role="alert"><h4>' + stat[0];
+                        dom += ": "+stat[1];
+                        dom += "</h4>" + issue.created_on + "<br/>" + issue.trigger_summary_data.description + "</div>";
+                    })
+
+                    issues.replaceWith(dom);
+
+                    setTimeout(updateIssues, 5000);
+                }
+            });
+        };
+
+        updateIssues();
+    });
+</script>
+{% endblock %}
+
